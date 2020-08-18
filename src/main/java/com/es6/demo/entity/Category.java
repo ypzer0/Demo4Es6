@@ -4,9 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.ScriptedField;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,8 +21,7 @@ public class Category {
     private String id;
 
     /**目录名称*/
-    @Field(type = FieldType.Keyword)
-    //@ScriptedField(name = "name")
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String name;
 
     @Field(type= FieldType.Keyword,index =false, store = true)

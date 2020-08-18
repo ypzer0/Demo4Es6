@@ -1,22 +1,20 @@
 package com.es6.demo;
 
-import com.es6.demo.entity.Category;
-import com.es6.demo.entity.CategoryInProduct;
-import com.es6.demo.entity.EnterpriseIndex;
-import com.es6.demo.entity.ProductIndex;
+import com.es6.demo.entity.*;
+import com.es6.demo.mapper.CustomResultMapper;
 import com.es6.demo.repository.CategoryIndexRepository;
 import com.es6.demo.repository.EnterpriseIndexRepository;
 import com.es6.demo.repository.ProductIndexRepository;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.util.CollectionUtils;
@@ -32,6 +30,8 @@ class Demo4es6ApplicationTests {
     private ProductIndexRepository productIndexRepository;
     @Autowired
     private CategoryIndexRepository categoryIndexRepository;
+    @Autowired
+    private ElasticsearchTemplate elasticsearchTemplate;
 
 
     /**
@@ -79,75 +79,70 @@ class Demo4es6ApplicationTests {
     @Test
     void saveEnterprise() {
         EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
-        enterpriseIndex.setId("1");
-        enterpriseIndex.setBrand("品牌1");
-        enterpriseIndex.setName("供应商1");
-        enterpriseIndexRepository.save(enterpriseIndex);
-        enterpriseIndex.setId("2");
-        enterpriseIndex.setBrand("品牌2");
-        enterpriseIndex.setName("供应商2");
-        enterpriseIndexRepository.save(enterpriseIndex);
-        enterpriseIndex.setId("3");
-        enterpriseIndex.setBrand("品牌3");
-        enterpriseIndex.setName("供应商3");
-        enterpriseIndexRepository.save(enterpriseIndex);
+        for (int i = 1; i <= 10; i++) {
+            enterpriseIndex.setId( "" + i);
+            enterpriseIndex.setBrand("品牌" + i);
+            enterpriseIndex.setName("供应商" + i);
+            enterpriseIndexRepository.save(enterpriseIndex);
+        }
+
     }
 
     /**
-     * 模拟保存电机产品
+     * 模拟保存产品
      */
     @Test
     void saveElectricMachinery() {
-        ProductIndex productIndex = new ProductIndex();
-        // 若保存的是一号测试企业，id为1
-        EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById("1").get();
-        productIndex.setEnterpriseId(enterpriseIndex.getId());
-        //productIndex.setEnterpriseInfo(enterpriseIndex);
-        // 直流电机目录id是3
-        String categoryId = "4";
-        // 利用set去重特性保证目录下企业id不重复
-        // 创建产品下的目录索引内容
-        List<CategoryInProduct> categories = new ArrayList<>();
-        createCategories(categories, enterpriseIndex.getId(), categoryId);
-        productIndex.setCategories(categories);
-        productIndex.setName("交流电机一号");
-        productIndexRepository.save(productIndex);
-        List<CategoryInProduct> categoriesInEnterprise = enterpriseIndex.getCategories();
-        if (CollectionUtils.isEmpty(categoriesInEnterprise)) {
-            categoriesInEnterprise = new ArrayList<>();
-        }
-        categoriesInEnterprise.addAll(categories);
-        enterpriseIndex.setCategories(categoriesInEnterprise);
-        enterpriseIndexRepository.save(enterpriseIndex);
+        // todo 直流电机-3 交流电机-4 直流泵-6 交流泵-7
+        createEMData("3");
+        createEMData("4");
+        createEMData("6");
+        createEMData("7");
     }
 
-    /**
-     * 模拟保存泵
-     */
-    @Test
-    void savePump() {
+    private void createEMData(String categoryId) {
         ProductIndex productIndex = new ProductIndex();
-        // 保存在三号企业下
-        EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById("3").get();
-        productIndex.setEnterpriseId(enterpriseIndex.getId());
-        //productIndex.setEnterpriseInfo(enterpriseIndex);
-        // 水泵分类id是6
-        String categoryId = "7";
-        // 利用set去重特性保证目录下企业id不重复
-        // 创建产品下的目录索引内容
-        List<CategoryInProduct> categories = new ArrayList<>();
-        createCategories(categories, enterpriseIndex.getId(), categoryId);
-        productIndex.setCategories(categories);
-        productIndex.setName("交流泵一号");
-        productIndexRepository.save(productIndex);
-        List<CategoryInProduct> categoriesInEnterprise = enterpriseIndex.getCategories();
-        if (CollectionUtils.isEmpty(categoriesInEnterprise)) {
-            categoriesInEnterprise = new ArrayList<>();
+        int addNum = 50;
+        for (int i = 1; i <= addNum; i++) {
+            // 随机找一个企业id
+            String randomId = String.valueOf((int) (1 + Math.random() * (10)));
+            EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById(randomId).get();
+            productIndex.setEnterpriseId(enterpriseIndex.getId());
+            // 创建产品下的目录索引内容
+            List<CategoryInProduct> categories = new ArrayList<>();
+            createCategories(categories, enterpriseIndex.getId(), categoryId);
+            productIndex.setCategories(categories);
+            String productName = "";
+            switch (categoryId) {
+                case "3":
+                    productName = "直流电机";
+                    productIndex.setId("" + i);
+                    break;
+                case "4":
+                    productName = "交流电机";
+                    productIndex.setId("" + i + addNum);
+                    break;
+                case "6":
+                    productName = "直流泵";
+                    productIndex.setId("" + i + addNum * 2);
+                    break;
+                case "7":
+                    productName = "交流泵";
+                    productIndex.setId("" + i + addNum * 3);
+                    break;
+            }
+            productIndex.setName(productName + i + "号");
+            productIndexRepository.save(productIndex);
+            List<ProductToEnterpriseIndex> products = enterpriseIndex.getProducts();
+            if (CollectionUtils.isEmpty(products)) {
+                products = new ArrayList<>();
+            }
+            ProductToEnterpriseIndex productToEnterpriseIndex = new ProductToEnterpriseIndex();
+            BeanUtils.copyProperties(productIndex,productToEnterpriseIndex);
+            products.add(productToEnterpriseIndex);
+            enterpriseIndex.setProducts(products);
+            enterpriseIndexRepository.save(enterpriseIndex);
         }
-        categoriesInEnterprise.addAll(categories);
-        enterpriseIndex.setCategories(categoriesInEnterprise);
-        enterpriseIndexRepository.save(enterpriseIndex);
-
     }
 
     private void createCategories(List<CategoryInProduct> categories,String enterpriseId,String id) {
@@ -173,8 +168,8 @@ class Demo4es6ApplicationTests {
     @Test
     void searchCategoryAndEnterpriseNum() {
         // 设前端传入的目录是keyword
-        String keyword = "*" + "交流电机" +"*";
-        WildcardQueryBuilder query = QueryBuilders.wildcardQuery("name", keyword);
+        String keyword = "直流泵";
+        MatchQueryBuilder query = QueryBuilders.matchQuery("name", keyword);
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
         //设置分页
         nativeSearchQueryBuilder.withQuery(query);
@@ -198,19 +193,43 @@ class Demo4es6ApplicationTests {
 
 
     @Test
-    void searchEnterpriseByCategory() {
-        // 设前端传入的目录是level
-        String keyword = "交流电机";
-        TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery("categories.name", keyword);
+    void searchEnterpriseByProduct() {
+        // 设前端传入的目录是keyword
+        String keyword = "直流泵";
+        MatchQueryBuilder query = QueryBuilders.matchQuery("products.name", keyword);
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
         //设置分页
-        nativeSearchQueryBuilder.withQuery(termQueryBuilder);
+        nativeSearchQueryBuilder.withPageable(PageRequest.of(0,10));
+        nativeSearchQueryBuilder.withQuery(query);
         SearchQuery searchQuery = nativeSearchQueryBuilder.build();
         Page<EnterpriseIndex> page = enterpriseIndexRepository.search(searchQuery);
         List<EnterpriseIndex> result = page.getContent();
-        System.out.println("搜索" + keyword +",旗下产品分类匹配的供应商是:");
+        System.out.println("搜索" + keyword +",拥有该产品的供应商是:");
         for (EnterpriseIndex enterpriseIndex : result) {
-            System.out.println(enterpriseIndex.getName());
+            NativeSearchQueryBuilder productSearch = new NativeSearchQueryBuilder();
+            MatchQueryBuilder query1 = QueryBuilders.matchQuery("enterpriseId", enterpriseIndex.getId());
+            MatchQueryBuilder query2 = QueryBuilders.matchQuery("name", keyword);
+            BoolQueryBuilder productQuery = QueryBuilders.boolQuery();
+            productQuery.must(query1).must(query2);
+            productSearch.withQuery(productQuery);
+            //高亮规则定义
+            HighlightBuilder highlightBuilder=new HighlightBuilder();
+            highlightBuilder.preTags("<span style='color:red;font-weight:700;'>");
+            highlightBuilder.postTags("</span>");
+            //指定高亮字段
+            highlightBuilder.field("name");
+            productSearch.withHighlightBuilder(highlightBuilder);
+            productSearch.withHighlightFields(
+                    highlightBuilder.fields().get(0)
+            );
+            CustomResultMapper customResultMapper = new CustomResultMapper();
+            AggregatedPage<ProductIndex> productIndexPage = elasticsearchTemplate.queryForPage(productSearch.build(), ProductIndex.class, customResultMapper);
+            StringBuilder stringBuilder = new StringBuilder();
+            List<ProductIndex> productIndexList = productIndexPage.getContent();
+            for (ProductIndex productIndex : productIndexList) {
+                stringBuilder.append(productIndex.getName()).append(" ");
+            }
+            System.out.println(enterpriseIndex.getName() + ",旗下"+ keyword +"有: " + stringBuilder.toString());
         }
     }
 

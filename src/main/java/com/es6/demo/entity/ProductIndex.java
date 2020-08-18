@@ -28,7 +28,7 @@ public class ProductIndex {
     @Field(type= FieldType.Object,store = true)
     private EnterpriseIndex enterpriseInfo;
     /**产品名称*/
-    @Field(type = FieldType.Text,analyzer="ik_max_word", searchAnalyzer="ik_max_word", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     @ScriptedField(name = "name")
     private String name;
     /**价格*/

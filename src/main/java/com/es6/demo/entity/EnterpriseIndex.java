@@ -35,7 +35,7 @@ public class EnterpriseIndex implements Serializable {
     private String brand;
 
     @Field(type= FieldType.Object, store = true)
-    private List<CategoryInProduct> categories;
+    private List<ProductToEnterpriseIndex> products;
 
     public String getId() {
         return id;
@@ -61,11 +61,11 @@ public class EnterpriseIndex implements Serializable {
         this.brand = brand;
     }
 
-    public List<CategoryInProduct> getCategories() {
-        return categories;
+    public List<ProductToEnterpriseIndex> getProducts() {
+        return products;
     }
 
-    public void setCategories(List<CategoryInProduct> categories) {
-        this.categories = categories;
+    public void setProducts(List<ProductToEnterpriseIndex> products) {
+        this.products = products;
     }
 }
