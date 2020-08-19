@@ -2,10 +2,7 @@ package com.es6.demo.entity;
 
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.ScriptedField;
+import org.springframework.data.elasticsearch.annotations.*;
 
 import java.io.Serializable;
 import java.util.List;
@@ -34,7 +31,7 @@ public class EnterpriseIndex implements Serializable {
     @Field(type = FieldType.Text,analyzer="ik_max_word", searchAnalyzer="ik_max_word", store = true)
     private String brand;
 
-    @Field(type= FieldType.Object, store = true)
+    @Field(type= FieldType.Nested, store = true)
     private List<ProductToEnterpriseIndex> products;
 
     public String getId() {
@@ -68,4 +65,5 @@ public class EnterpriseIndex implements Serializable {
     public void setProducts(List<ProductToEnterpriseIndex> products) {
         this.products = products;
     }
+
 }

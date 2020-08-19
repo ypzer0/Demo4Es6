@@ -1,11 +1,13 @@
 package com.es6.demo.mapper;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
@@ -24,10 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -38,6 +37,7 @@ import java.util.List;
  * @Version v1.0
  */
 public class CustomResultMapper extends DefaultResultMapper {
+
     private MappingContext<? extends ElasticsearchPersistentEntity<?>, ElasticsearchPersistentProperty> mappingContext = (MappingContext)(new SimpleElasticsearchMappingContext());
 
     @Override
@@ -171,4 +171,5 @@ public class CustomResultMapper extends DefaultResultMapper {
         }
 
     }
+
 }

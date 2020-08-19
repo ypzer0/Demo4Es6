@@ -35,7 +35,7 @@ public class ProductIndex {
     @Field(type= FieldType.Double,index =true, store = true)
     private Double price;
 
-    @Field(type= FieldType.Object, store = true)
+    @Field(type= FieldType.Nested, store = true)
     private List<CategoryInProduct> categories;
 
     @Override
