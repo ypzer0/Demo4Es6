@@ -1,6 +1,7 @@
 package com.es6.demo.entity;
 
 
+import com.es6.demo.annotation.InnerHits;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
@@ -34,6 +35,9 @@ public class EnterpriseIndex implements Serializable {
     @Field(type= FieldType.Nested, store = true)
     private List<ProductToEnterpriseIndex> products;
 
+    @InnerHits(name = "com.es6.demo.entity.ProductToEnterpriseIndex")
+    private List<ProductToEnterpriseIndex> innerHits;
+
     public String getId() {
         return id;
     }
@@ -66,4 +70,11 @@ public class EnterpriseIndex implements Serializable {
         this.products = products;
     }
 
+    public List<ProductToEnterpriseIndex> getInnerHits() {
+        return innerHits;
+    }
+
+    public void setInnerHits(List<ProductToEnterpriseIndex> innerHits) {
+        this.innerHits = innerHits;
+    }
 }

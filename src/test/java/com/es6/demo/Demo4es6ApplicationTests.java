@@ -1,5 +1,6 @@
 package com.es6.demo;
 
+import com.alibaba.fastjson.JSONObject;
 import com.es6.demo.entity.*;
 import com.es6.demo.mapper.CustomResultMapper;
 import com.es6.demo.mapper.InnerResultsExtractor;
@@ -152,7 +153,7 @@ class Demo4es6ApplicationTests {
     @Test
     void addProductInEnterprise() {
         // 找一个企业id
-        String id = "10";
+        String id = "7";
         EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById(id).get();
         ProductIndex productIndex = new ProductIndex();
         productIndex.setEnterpriseId(enterpriseIndex.getId());
@@ -161,7 +162,7 @@ class Demo4es6ApplicationTests {
         // todo 直流电机-3 交流电机-4 直流泵-6 交流泵-7
         createCategories(categories, enterpriseIndex.getId(), "4");
         productIndex.setCategories(categories);
-        productIndex.setName("交流电机0号");
+        productIndex.setName("特殊交流电机0号");
         productIndexRepository.save(productIndex);
         List<ProductToEnterpriseIndex> products = enterpriseIndex.getProducts();
         if (CollectionUtils.isEmpty(products)) {
@@ -274,17 +275,18 @@ class Demo4es6ApplicationTests {
         MatchQueryBuilder query = QueryBuilders.matchQuery("products.name", keyword);
         NestedQueryBuilder nestedQuery = QueryBuilders.nestedQuery("products", query, ScoreMode.Total);
         InnerHitBuilder innerHitBuilder = new InnerHitBuilder();
-        //高亮规则定义
-        HighlightBuilder highlightBuilder= new HighlightBuilder();
-        highlightBuilder.preTags("<span style='color:red;font-weight:700;'>");
-        highlightBuilder.postTags("</span>");
-        //指定高亮字段
-        highlightBuilder.field("products.name");
-        innerHitBuilder.setHighlightBuilder(highlightBuilder);
         /**
          * 返回匹配的前一百个(引擎最多支持100个)
          */
         innerHitBuilder.setSize(100);
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        // 高亮字段
+        highlightBuilder.field("products.name");
+        // 高亮标签
+        highlightBuilder.preTags("<em>").postTags("<em>");
+        // 高亮内容长度
+        highlightBuilder.fragmentSize(200);
+        innerHitBuilder.setHighlightBuilder(highlightBuilder);
         nestedQuery.innerHit(innerHitBuilder);
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
         //设置分页２
@@ -293,11 +295,13 @@ class Demo4es6ApplicationTests {
         SearchQuery searchQuery = nativeSearchQueryBuilder.build();
         CustomResultMapper customResultMapper = new CustomResultMapper();
         AggregatedPage<EnterpriseIndex> result = elasticsearchTemplate.queryForPage(searchQuery, EnterpriseIndex.class, customResultMapper);
-        Map<String, List<ProductToEnterpriseIndex>> innerResult = elasticsearchTemplate.query(searchQuery, new InnerResultsExtractor<>(ProductToEnterpriseIndex.class));
+        for (EnterpriseIndex enterpriseIndex : result) {
+            List<ProductToEnterpriseIndex> innerHits = enterpriseIndex.getInnerHits();
+            enterpriseIndex.setProducts(innerHits);
+        }
+
         System.out.println("搜索" + keyword +",拥有该产品的供应商是:");
         for (EnterpriseIndex enterpriseIndex : result) {
-            List<ProductToEnterpriseIndex> list = innerResult.get(enterpriseIndex.getId());
-            enterpriseIndex.setProducts(list);
             StringBuilder stringBuilder = new StringBuilder();
             List<ProductToEnterpriseIndex> products = enterpriseIndex.getProducts();
             for (ProductToEnterpriseIndex product : products) {

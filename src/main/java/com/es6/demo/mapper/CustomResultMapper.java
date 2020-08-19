@@ -1,17 +1,20 @@
 package com.es6.demo.mapper;
 
 import com.alibaba.fastjson.JSON;
+import com.es6.demo.annotation.InnerHits;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.document.DocumentField;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.InnerField;
 import org.springframework.data.elasticsearch.annotations.ScriptedField;
 import org.springframework.data.elasticsearch.core.DefaultResultMapper;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
@@ -144,7 +147,53 @@ public class CustomResultMapper extends DefaultResultMapper {
 
     }
 
+    /**
+     * @Author: yangpeng
+     * @Description: 自定义解析innerHits与结果集高亮展示
+     * @Date: 2020/8/19 16:46
+     * @Param: result 查询结果的泛型
+     * @Param: hit 查询结果
+     * @Return: 操作结果
+     * 修改人---修改日期---修改内容
+     */
     private <T> void populateScriptFields(T result, SearchHit hit) {
+        Map<String, SearchHits> innerHits = hit.getInnerHits();
+        for (Map.Entry<String, SearchHits> entry : innerHits.entrySet()) {
+            SearchHit[] hits = entry.getValue().getHits();
+            for (SearchHit documentFields : hits) {
+                Map<String, HighlightField> highlightFields = documentFields.getHighlightFields();
+                if (highlightFields != null && !highlightFields.isEmpty() && result != null) {
+                    Field[] var3 = result.getClass().getDeclaredFields();
+                    int var4 = var3.length;
+
+                    for(int var5 = 0; var5 < var4; ++var5) {
+                        Field field = var3[var5];
+                        InnerHits innerHitsAnno = (InnerHits)field.getAnnotation(InnerHits.class);
+                        if (innerHitsAnno != null) {
+                            field.setAccessible(true);
+                            try {
+                                ArrayList<Object> list = new ArrayList<>();
+                                for (Map.Entry<String, SearchHits> hitsEntry : innerHits.entrySet()) {
+                                    for (SearchHit fields : hitsEntry.getValue().getHits()) {
+                                        String sourceAsString = fields.getSourceAsString();
+                                        Class<?> clazz = Class.forName(innerHitsAnno.name());
+                                        Object object = JSON.parseObject(sourceAsString, clazz);
+                                        list.add(object);
+                                    }
+                                }
+                                field.set(result, list);
+                            } catch (IllegalArgumentException var11) {
+                                throw new ElasticsearchException("设置脚本字段失败");
+                            } catch (IllegalAccessException e) {
+                                throw new ElasticsearchException("无法访问脚本字段");
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        }
         if (hit.getHighlightFields() != null && !hit.getHighlightFields().isEmpty() && result != null) {
             Field[] var3 = result.getClass().getDeclaredFields();
             int var4 = var3.length;
@@ -157,7 +206,6 @@ public class CustomResultMapper extends DefaultResultMapper {
                     HighlightField highlightField = hit.getHighlightFields().get(name);
                     if (highlightField != null) {
                         field.setAccessible(true);
-
                         try {
                             field.set(result, highlightField.getFragments()[0].toString());
                         } catch (IllegalArgumentException var11) {
