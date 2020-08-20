@@ -19,4 +19,9 @@ public @interface InnerHits {
      * 填写内部类的全类名
      */
     String name() default "";
+    /**
+     * 内部类在主类中的字段名
+     */
+    String fieldName() default "";
+
 }

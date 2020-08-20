@@ -43,6 +43,8 @@ public class CustomResultMapper extends DefaultResultMapper {
 
     private MappingContext<? extends ElasticsearchPersistentEntity<?>, ElasticsearchPersistentProperty> mappingContext = (MappingContext)(new SimpleElasticsearchMappingContext());
 
+    private static final String SPOT = ".";
+
     @Override
     public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz, Pageable pageable) {
         long totalHits = response.getHits().getTotalHits();
@@ -158,41 +160,9 @@ public class CustomResultMapper extends DefaultResultMapper {
      */
     private <T> void populateScriptFields(T result, SearchHit hit) {
         Map<String, SearchHits> innerHits = hit.getInnerHits();
-        for (Map.Entry<String, SearchHits> entry : innerHits.entrySet()) {
-            SearchHit[] hits = entry.getValue().getHits();
-            for (SearchHit documentFields : hits) {
-                Map<String, HighlightField> highlightFields = documentFields.getHighlightFields();
-                if (highlightFields != null && !highlightFields.isEmpty() && result != null) {
-                    Field[] var3 = result.getClass().getDeclaredFields();
-                    int var4 = var3.length;
 
-                    for(int var5 = 0; var5 < var4; ++var5) {
-                        Field field = var3[var5];
-                        InnerHits innerHitsAnno = (InnerHits)field.getAnnotation(InnerHits.class);
-                        if (innerHitsAnno != null) {
-                            field.setAccessible(true);
-                            try {
-                                ArrayList<Object> list = new ArrayList<>();
-                                for (Map.Entry<String, SearchHits> hitsEntry : innerHits.entrySet()) {
-                                    for (SearchHit fields : hitsEntry.getValue().getHits()) {
-                                        String sourceAsString = fields.getSourceAsString();
-                                        Class<?> clazz = Class.forName(innerHitsAnno.name());
-                                        Object object = JSON.parseObject(sourceAsString, clazz);
-                                        list.add(object);
-                                    }
-                                }
-                                field.set(result, list);
-                            } catch (IllegalArgumentException var11) {
-                                throw new ElasticsearchException("设置脚本字段失败");
-                            } catch (IllegalAccessException e) {
-                                throw new ElasticsearchException("无法访问脚本字段");
-                            } catch (ClassNotFoundException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
+        if(innerHits != null && innerHits.size() > 0) {
+            createInnerHits(result,innerHits);
         }
         if (hit.getHighlightFields() != null && !hit.getHighlightFields().isEmpty() && result != null) {
             Field[] var3 = result.getClass().getDeclaredFields();
@@ -218,6 +188,63 @@ public class CustomResultMapper extends DefaultResultMapper {
             }
         }
 
+    }
+
+    private <T> void createInnerHits(T result, Map<String, SearchHits> innerHits) {
+        Field[] var3 = result.getClass().getDeclaredFields();
+        int var4 = var3.length;
+
+        for(int var5 = 0; var5 < var4; ++var5) {
+            Field field = var3[var5];
+            InnerHits innerHitsAnno = (InnerHits)field.getAnnotation(InnerHits.class);
+            if (innerHitsAnno != null) {
+                field.setAccessible(true);
+                ArrayList<Object> list = new ArrayList<>();
+                for (Map.Entry<String, SearchHits> hitsEntry : innerHits.entrySet()) {
+                    for (SearchHit fields : hitsEntry.getValue().getHits()) {
+                        String sourceAsString = fields.getSourceAsString();
+                        Class<?> clazz = null;
+                        try {
+                            clazz = Class.forName(innerHitsAnno.name());
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        Object obj = null;
+                        try {
+                            assert clazz != null;
+                            obj = clazz.newInstance();
+                        } catch (InstantiationException | IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        Map<String, HighlightField> highlightFields = fields.getHighlightFields();
+                        if (highlightFields.size() > 0) {
+                            for (Map.Entry<String, HighlightField> entry : highlightFields.entrySet()) {
+                                Field[] declaredFields = clazz.getDeclaredFields();
+                                for (int i = 0; i < declaredFields.length; i++) {
+                                    String fieldName = innerHitsAnno.fieldName() + SPOT + declaredFields[i].getName();
+                                    if (fieldName.equals(entry.getKey())) {
+                                        declaredFields[i].setAccessible(true);
+                                        try {
+                                            declaredFields[i].set(obj,entry.getValue().getFragments()[0].toString());
+                                        } catch (IllegalAccessException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        list.add(obj);
+                        }
+                    }
+                try {
+                    field.set(result, list);
+                } catch (IllegalArgumentException var11) {
+                    throw new ElasticsearchException("设置脚本字段失败");
+                } catch (IllegalAccessException e) {
+                    throw new ElasticsearchException("无法访问脚本字段");
+                }
+            }
+        }
     }
 
 }

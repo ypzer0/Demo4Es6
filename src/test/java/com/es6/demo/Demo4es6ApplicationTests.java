@@ -223,7 +223,7 @@ class Demo4es6ApplicationTests {
     @Test
     void searchEnterpriseByProduct() {
         // 设前端传入的目录是keyword
-        String keyword = "交流电机";
+        String keyword = "直流泵";
         MatchQueryBuilder query = QueryBuilders.matchQuery("products.name", keyword);
         NestedQueryBuilder nestedQuery = QueryBuilders.nestedQuery("products", query, ScoreMode.Total);
         nestedQuery.innerHit(new InnerHitBuilder());
@@ -271,7 +271,7 @@ class Demo4es6ApplicationTests {
     @Test
     void searchEnterpriseByProductNested() {
         // 设前端传入的目录是keyword
-        String keyword = "附加交流电机";
+        String keyword = "交流电机";
         MatchQueryBuilder query = QueryBuilders.matchQuery("products.name", keyword);
         NestedQueryBuilder nestedQuery = QueryBuilders.nestedQuery("products", query, ScoreMode.Total);
         InnerHitBuilder innerHitBuilder = new InnerHitBuilder();
@@ -283,7 +283,7 @@ class Demo4es6ApplicationTests {
         // 高亮字段
         highlightBuilder.field("products.name");
         // 高亮标签
-        highlightBuilder.preTags("<em>").postTags("<em>");
+        highlightBuilder.preTags("<span style='color:red;font-weight:700;'>").postTags("</span>");
         // 高亮内容长度
         highlightBuilder.fragmentSize(200);
         innerHitBuilder.setHighlightBuilder(highlightBuilder);
@@ -299,7 +299,6 @@ class Demo4es6ApplicationTests {
             List<ProductToEnterpriseIndex> innerHits = enterpriseIndex.getInnerHits();
             enterpriseIndex.setProducts(innerHits);
         }
-
         System.out.println("搜索" + keyword +",拥有该产品的供应商是:");
         for (EnterpriseIndex enterpriseIndex : result) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -314,7 +313,7 @@ class Demo4es6ApplicationTests {
     @Test
     void searchProductByCategory() {
         // 设前端传入的目录是keyword
-        String keyword = "泵";
+        String keyword = "电机";
         MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("categories.name", keyword);
         NestedQueryBuilder nestedQuery = QueryBuilders.nestedQuery("categories", matchQuery, ScoreMode.Total);
         nestedQuery.innerHit(new InnerHitBuilder());
