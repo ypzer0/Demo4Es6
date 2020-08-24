@@ -3,6 +3,7 @@ package com.es6.demo.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -11,6 +12,7 @@ import java.util.List;
  *@Date: 2019/5/10 15:28
  */
 @Document(indexName = "product",type = "_doc")
+@Setting(settingPath = "product/product-setting.json")
 public class ProductIndex {
     /***
      * PS
@@ -25,27 +27,30 @@ public class ProductIndex {
     @Field(type= FieldType.Object,store = true)
     private EnterpriseIndex enterpriseInfo;
     /**产品名称*/
-    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
-    @ScriptedField(name = "name")
+    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    // @ScriptedField(name = "name")
     private String name;
-    /**价格*/
-    @Field(type= FieldType.Double,index =true, store = true)
-    private Double price;
+    /**
+     * 产品参数
+     */
+    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    private String parameter;
+    /**
+     * 产品所属企业名称
+     */
+    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    private String enterpriseName;
+    /**
+     * 简介
+     */
+    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    private String introduction;
+
+    @Field(type = FieldType.Date, store = true)
+    private Date createTime;
 
     @Field(type= FieldType.Nested, store = true)
     private List<CategoryInProduct> categories;
-
-    @Override
-    public String toString() {
-        return "ProductIndex{" +
-                "id='" + id + '\'' +
-                ", enterpriseId='" + enterpriseId + '\'' +
-                ", enterpriseInfo=" + enterpriseInfo +
-                ", name='" + name + '\'' +
-                ", price=" + price +
-                ", categories=" + categories +
-                '}';
-    }
 
     public String getId() {
         return id;
@@ -79,14 +84,36 @@ public class ProductIndex {
         this.name = name;
     }
 
-
-
-    public Double getPrice() {
-        return price;
+    public String getEnterpriseName() {
+        return enterpriseName;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setEnterpriseName(String enterpriseName) {
+        this.enterpriseName = enterpriseName;
+    }
+
+    public String getParameter() {
+        return parameter;
+    }
+
+    public void setParameter(String parameter) {
+        this.parameter = parameter;
+    }
+
+    public String getIntroduction() {
+        return introduction;
+    }
+
+    public void setIntroduction(String introduction) {
+        this.introduction = introduction;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 
     public List<CategoryInProduct> getCategories() {
@@ -95,5 +122,20 @@ public class ProductIndex {
 
     public void setCategories(List<CategoryInProduct> categories) {
         this.categories = categories;
+    }
+
+    @Override
+    public String toString() {
+        return "ProductIndex{" +
+                "id='" + id + '\'' +
+                ", enterpriseId='" + enterpriseId + '\'' +
+                ", enterpriseInfo=" + enterpriseInfo +
+                ", name='" + name + '\'' +
+                ", parameter='" + parameter + '\'' +
+                ", enterpriseName='" + enterpriseName + '\'' +
+                ", introduction='" + introduction + '\'' +
+                ", createTime=" + createTime +
+                ", categories=" + categories +
+                '}';
     }
 }

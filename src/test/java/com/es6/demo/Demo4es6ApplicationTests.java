@@ -8,6 +8,10 @@ import com.es6.demo.repository.ProductIndexRepository;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.ScoreSortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,7 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootTest
@@ -161,7 +166,7 @@ class Demo4es6ApplicationTests {
     }
 
     private void createEMData(String categoryId) {
-        int addNum = 300;
+        int addNum = 20;
         for (int i = 1; i <= addNum; i++) {
             ProductIndex productIndex = new ProductIndex();
             // 随机找一个企业id
@@ -321,6 +326,10 @@ class Demo4es6ApplicationTests {
                 highlightBuilder.fields().get(0)
         );
         nativeSearchQueryBuilder.withQuery(boolQuery);
+        ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort();
+        FieldSortBuilder sortBuilder = SortBuilders.fieldSort("createTime").order(SortOrder.DESC);
+        // 一定要设置分数排序
+        nativeSearchQueryBuilder.withSort(scoreSortBuilder).withSort(sortBuilder);
         SearchQuery searchQuery = nativeSearchQueryBuilder.build();
         CustomResultMapper customResultMapper = new CustomResultMapper();
         AggregatedPage<EnterpriseIndex> result = elasticsearchTemplate.queryForPage(searchQuery, EnterpriseIndex.class, customResultMapper);
@@ -340,6 +349,51 @@ class Demo4es6ApplicationTests {
             if (!StringUtils.isEmpty(productString)) {
                 System.out.println("供应商产品:" + productString);
             }
+            System.out.println("}");
+        }
+    }
+
+    /**
+     * 多条件组合搜索产品
+     */
+    @Test
+    void searchProduct() {
+        // 设前端传入的目录是keyword
+        String keyword = "时间测试";
+        MatchQueryBuilder query1 = QueryBuilders.matchQuery("name", keyword);
+        query1.boost(10.0f);
+        MatchQueryBuilder query2 = QueryBuilders.matchQuery("parameter", keyword);
+        query2.boost(7.5f);
+        MatchQueryBuilder query3 = QueryBuilders.matchQuery("enterpriseName", keyword);
+        query3.boost(5.0f);
+        MatchQueryBuilder query4 = QueryBuilders.matchQuery("introduction", keyword);
+        query4.boost(2.5f);
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+        boolQuery.should(query1)
+                .should(query2)
+                .should(query3)
+                .should(query3);
+        NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+        //设置分页
+        PageRequest dataPage = PageRequest.of(0, 10);
+        nativeSearchQueryBuilder.withPageable(dataPage);
+        nativeSearchQueryBuilder.withQuery(boolQuery);
+        ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort();
+        FieldSortBuilder sortBuilder = SortBuilders.fieldSort("createTime").order(SortOrder.DESC);
+        // 一定要设置分数排序
+        nativeSearchQueryBuilder.withSort(scoreSortBuilder).withSort(sortBuilder);
+        NativeSearchQuery searchQuery = nativeSearchQueryBuilder.build();
+        Page<ProductIndex> page = productIndexRepository.search(searchQuery);
+        List<ProductIndex> result = page.getContent();
+        System.out.println("搜索" + keyword +",分类匹配的产品是:");
+        for (ProductIndex productIndex : result) {
+            System.out.println("{");
+            System.out.println("  产品名称: " + productIndex.getName());
+            System.out.println("  产品参数: " + productIndex.getParameter());
+            System.out.println("  产品企业: " + productIndex.getEnterpriseName());
+            System.out.println("  产品介绍: " + productIndex.getIntroduction());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            System.out.println("  创建时间: " + formatter.format(productIndex.getCreateTime()) );
             System.out.println("}");
         }
     }

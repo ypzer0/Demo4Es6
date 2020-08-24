@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -39,6 +40,9 @@ public class EnterpriseIndex implements Serializable {
     @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
     private String introduction;
 
+    @Field(type = FieldType.Date, store = true)
+    private Date createTime;
+
     @Field(type = FieldType.Nested)
     private List<ProductToEnterpriseIndex> products;
 
@@ -67,6 +71,14 @@ public class EnterpriseIndex implements Serializable {
 
     public void setBrand(String brand) {
         this.brand = brand;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 
     public List<ProductToEnterpriseIndex> getProducts() {
