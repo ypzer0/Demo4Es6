@@ -20,6 +20,9 @@ public class Category {
     @Field(type= FieldType.Keyword,index =false, store = true)
     private String id;
 
+    @Field(type = FieldType.Keyword)
+    private String keyword;
+
     /**目录名称*/
     @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String name;
@@ -37,6 +40,7 @@ public class Category {
     public String toString() {
         return "Category{" +
                 "id='" + id + '\'' +
+                ", keyword='" + keyword + '\'' +
                 ", name='" + name + '\'' +
                 ", parentId='" + parentId + '\'' +
                 ", parentName='" + parentName + '\'' +
@@ -58,6 +62,14 @@ public class Category {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKeyword() {
+        return keyword;
+    }
+
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
     }
 
     public String getParentId() {

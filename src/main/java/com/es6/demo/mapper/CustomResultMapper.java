@@ -202,7 +202,6 @@ public class CustomResultMapper extends DefaultResultMapper {
                 ArrayList<Object> list = new ArrayList<>();
                 for (Map.Entry<String, SearchHits> hitsEntry : innerHits.entrySet()) {
                     for (SearchHit fields : hitsEntry.getValue().getHits()) {
-                        String sourceAsString = fields.getSourceAsString();
                         Class<?> clazz = null;
                         try {
                             clazz = Class.forName(innerHitsAnno.name());

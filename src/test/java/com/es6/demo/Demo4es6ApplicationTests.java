@@ -44,39 +44,54 @@ class Demo4es6ApplicationTests {
         Category category1 = new Category();
         category1.setId("1");
         category1.setName("顶级分类");
+        category1.setKeyword("顶级分类");
         categoryIndexRepository.save(category1);
         Category category2 = new Category();
         category2.setId("2");
         category2.setName("电机");
+        category2.setKeyword("电机");
         category2.setParentId(category1.getId());
         categoryIndexRepository.save(category2);
         Category category3 = new Category();
         category3.setId("3");
         category3.setParentId(category2.getId());
         category3.setName("直流电机");
+        category3.setKeyword("直流电机");
         categoryIndexRepository.save(category3);
         Category category4 = new Category();
         category4.setId("4");
         category4.setParentId(category2.getId());
         category4.setName("交流电机");
+        category4.setKeyword("交流电机");
         categoryIndexRepository.save(category4);
         Category category5 = new Category();
         category5.setId("5");
         category5.setName("泵");
+        category5.setKeyword("泵");
         category5.setParentId("1");
         categoryIndexRepository.save(category5);
         Category category6 = new Category();
         category6.setId("6");
         category6.setParentId(category5.getId());
         category6.setName("直流泵");
+        category6.setKeyword("直流泵");
         categoryIndexRepository.save(category6);
         Category category7 = new Category();
         category7.setId("7");
         category7.setParentId(category5.getId());
         category7.setName("交流泵");
+        category7.setKeyword("交流泵");
         categoryIndexRepository.save(category7);
     }
 
+    @Test
+    void saveSingleCategory() {
+        Category category = new Category();
+        category.setParentId("1");
+        category.setKeyword("测试交流泵");
+        category.setName("测试交流泵");
+        categoryIndexRepository.save(category);
+    }
 
     @Test
     void saveEnterprise() {
@@ -93,10 +108,10 @@ class Demo4es6ApplicationTests {
      * 保存专卖供应商
      */
     @Test
-    void saveEnterpriseMore() {
+    void saveSingleEnterprise() {
         EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
-        enterpriseIndex.setBrand("交流电机品牌");
-        enterpriseIndex.setName("交流电机专卖商1号");
+        enterpriseIndex.setBrand("交流泵品牌");
+        enterpriseIndex.setName("交流泵专卖商1号");
         enterpriseIndexRepository.save(enterpriseIndex);
     }
 
@@ -104,16 +119,15 @@ class Demo4es6ApplicationTests {
      * 加入专卖供应商的产品
      */
     @Test
-    void  addProductMore() {
+    void  addSingleProduct() {
         ProductIndex productIndex = new ProductIndex();
-        // 随机找一个企业id
-        EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById("nDHMCXQBq2cNAiN_0Hy4").get();
+        EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById("1").get();
         productIndex.setEnterpriseId(enterpriseIndex.getId());
         // 创建产品下的目录索引内容
         List<CategoryInProduct> categories = new ArrayList<>();
-        createCategories(categories, enterpriseIndex.getId(), "4");
+        createCategories(categories, enterpriseIndex.getId(), "7");
         productIndex.setCategories(categories);
-        productIndex.setName("专卖交流电机");
+        productIndex.setName("测试交流泵");
         productIndexRepository.save(productIndex);
         List<ProductToEnterpriseIndex> products = enterpriseIndex.getProducts();
         if (CollectionUtils.isEmpty(products)) {
@@ -232,11 +246,14 @@ class Demo4es6ApplicationTests {
     @Test
     void searchCategoryAndEnterpriseNum() {
         // 设前端传入的目录是keyword
-        String keyword = "直流泵";
-        MatchQueryBuilder query = QueryBuilders.matchQuery("name", keyword);
+        String keyword = "测试交流泵";
+        MatchQueryBuilder query1 = QueryBuilders.matchQuery("keyword", keyword).boost(10.f);
+        MatchQueryBuilder query2 = QueryBuilders.matchQuery("name", keyword).boost(1.0f);
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        boolQueryBuilder.should(query1).should(query2);
         //设置分页
-        nativeSearchQueryBuilder.withQuery(query);
+        nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
         SearchQuery searchQuery = nativeSearchQueryBuilder.build();
         Page<Category> page = categoryIndexRepository.search(searchQuery);
         List<Category> result = page.getContent();
@@ -249,7 +266,7 @@ class Demo4es6ApplicationTests {
                 for (String enterpriseId : enterpriseIds) {
                     stringBuilder.append(enterpriseIndexRepository.findById(enterpriseId).get().getName()).append(" ");
                 }
-                System.out.println(category.getName() + "    " + enterpriseIds.size() + "家供应商," + stringBuilder.toString());
+                System.out.println(category.getName() + "  " + enterpriseIds.size() + "家供应商," + stringBuilder.toString());
             }
         }
     }
@@ -257,7 +274,7 @@ class Demo4es6ApplicationTests {
     @Test
     void searchEnterpriseByProductNested() {
         // 设前端传入的目录是keyword
-        String keyword = "交流电机";
+        String keyword = "交流泵";
         MatchQueryBuilder query1 = QueryBuilders.matchQuery("name", keyword);
         //高亮规则定义
         HighlightBuilder highlightBuilder=new HighlightBuilder();
@@ -265,14 +282,12 @@ class Demo4es6ApplicationTests {
         highlightBuilder.postTags("</span>");
         //指定高亮字段
         highlightBuilder.field("name");
-        query1.boost(10.f);
+        query1.boost(10.0f);
         MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("products.name", keyword);
         matchQuery.boost(1.0f);
         NestedQueryBuilder query2 = QueryBuilders.nestedQuery("products", matchQuery, ScoreMode.Total);
         InnerHitBuilder innerHitBuilder = new InnerHitBuilder();
-        /**
-         * 返回匹配的前一百个(引擎最多支持100个)
-         */
+        // 返回匹配的前一百个(引擎最多支持100个)
         innerHitBuilder.setSize(100);
         HighlightBuilder highlightBuilder2 = new HighlightBuilder();
         // 产品高亮字段

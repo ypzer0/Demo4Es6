@@ -14,6 +14,7 @@ import java.util.List;
  *@Date: 2019/5/10 15:28
  */
 @Document(indexName = "enterprise", type = "_doc")
+@Setting(settingPath = "enterprise/enterprise-setting.json")
 public class EnterpriseIndex implements Serializable {
 
     /***
@@ -25,14 +26,11 @@ public class EnterpriseIndex implements Serializable {
     @Field(type= FieldType.Keyword, store = true)
     private String id;
     /**公司名称*/
-    @Field(type = FieldType.Text,analyzer="ik_max_word", searchAnalyzer="ik_max_word", store = true)
-    @ScriptedField(name = "name")
+    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
     private String name;
 
-    @Field(type = FieldType.Text,analyzer="ik_max_word", searchAnalyzer="ik_max_word", store = true)
     private String brand;
-
-    @Field(type= FieldType.Nested, store = true)
+    @Field(type = FieldType.Nested)
     private List<ProductToEnterpriseIndex> products;
 
     @InnerHits(name = "com.es6.demo.entity.ProductToEnterpriseIndex",fieldName = "products")
