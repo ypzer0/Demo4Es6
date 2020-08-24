@@ -95,11 +95,18 @@ class Demo4es6ApplicationTests {
 
     @Test
     void saveEnterprise() {
-        EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
         for (int i = 1; i <= 10; i++) {
+            EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
             enterpriseIndex.setId( "" + i);
-            enterpriseIndex.setBrand("品牌" + i);
             enterpriseIndex.setName("供应商" + i);
+            enterpriseIndexRepository.save(enterpriseIndex);
+        }
+
+        for (int i = 0; i < 7; i++) {
+            EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
+            enterpriseIndex.setName("JOJO的奇妙冒险" + i);
+            enterpriseIndex.setBrand("供应商品牌" + i);
+            enterpriseIndex.setIntroduction("供应商简介" + i);
             enterpriseIndexRepository.save(enterpriseIndex);
         }
     }
@@ -119,9 +126,9 @@ class Demo4es6ApplicationTests {
      * 加入专卖供应商的产品
      */
     @Test
-    void  addSingleProduct() {
+    void addSingleProduct() {
         ProductIndex productIndex = new ProductIndex();
-        EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById("1").get();
+        EnterpriseIndex enterpriseIndex = enterpriseIndexRepository.findById("AKYfH3QBMuOJ6PqwxAlW").get();
         productIndex.setEnterpriseId(enterpriseIndex.getId());
         // 创建产品下的目录索引内容
         List<CategoryInProduct> categories = new ArrayList<>();
@@ -168,19 +175,19 @@ class Demo4es6ApplicationTests {
             String productName = "";
             switch (categoryId) {
                 case "3":
-                    productName = "直流电机";
+                    productName = "供应商直流电机";
                     productIndex.setId("" + i);
                     break;
                 case "4":
-                    productName = "交流电机";
+                    productName = "供应商交流电机";
                     productIndex.setId("" + (i + addNum));
                     break;
                 case "6":
-                    productName = "直流泵";
+                    productName = "供应商直流泵";
                     productIndex.setId("" + (i + addNum * 2));
                     break;
                 case "7":
-                    productName = "交流泵";
+                    productName = "供应商交流泵";
                     productIndex.setId("" + (i + addNum * 3));
                     break;
             }
@@ -274,7 +281,7 @@ class Demo4es6ApplicationTests {
     @Test
     void searchEnterpriseByProductNested() {
         // 设前端传入的目录是keyword
-        String keyword = "交流泵";
+        String keyword = "供应商";
         MatchQueryBuilder query1 = QueryBuilders.matchQuery("name", keyword);
         //高亮规则定义
         HighlightBuilder highlightBuilder=new HighlightBuilder();
@@ -284,8 +291,8 @@ class Demo4es6ApplicationTests {
         highlightBuilder.field("name");
         query1.boost(10.0f);
         MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("products.name", keyword);
-        matchQuery.boost(1.0f);
         NestedQueryBuilder query2 = QueryBuilders.nestedQuery("products", matchQuery, ScoreMode.Total);
+        query2.boost(5.0f);
         InnerHitBuilder innerHitBuilder = new InnerHitBuilder();
         // 返回匹配的前一百个(引擎最多支持100个)
         innerHitBuilder.setSize(100);
@@ -296,8 +303,15 @@ class Demo4es6ApplicationTests {
         highlightBuilder2.preTags("<span style='color:red;font-weight:700;'>").postTags("</span>");
         innerHitBuilder.setHighlightBuilder(highlightBuilder2);
         query2.innerHit(innerHitBuilder);
-
-        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().should(query1).should(query2);
+        MatchQueryBuilder query3 = QueryBuilders.matchQuery("brand", keyword);
+        query3.boost(1.0f);
+        MatchQueryBuilder query4 = QueryBuilders.matchQuery("introduction", keyword);
+        query4.boost(1.0f);
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
+                .should(query1)
+                .should(query2)
+                .should(query3)
+                .should(query4);
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
         //设置分页
         nativeSearchQueryBuilder.withPageable(PageRequest.of(0,100));
@@ -310,18 +324,23 @@ class Demo4es6ApplicationTests {
         SearchQuery searchQuery = nativeSearchQueryBuilder.build();
         CustomResultMapper customResultMapper = new CustomResultMapper();
         AggregatedPage<EnterpriseIndex> result = elasticsearchTemplate.queryForPage(searchQuery, EnterpriseIndex.class, customResultMapper);
-        for (EnterpriseIndex enterpriseIndex : result) {
-            List<ProductToEnterpriseIndex> innerHits = enterpriseIndex.getInnerHits();
-            enterpriseIndex.setProducts(innerHits);
-        }
         System.out.println("搜索" + keyword +",拥有该产品的供应商是:");
         for (EnterpriseIndex enterpriseIndex : result) {
             StringBuilder stringBuilder = new StringBuilder();
-            List<ProductToEnterpriseIndex> products = enterpriseIndex.getProducts();
+            List<ProductToEnterpriseIndex> products = enterpriseIndex.getInnerHits();
             for (ProductToEnterpriseIndex product : products) {
                 stringBuilder.append(product.getName()).append(" ");
             }
-            System.out.println(enterpriseIndex.getName() + ",旗下"+ keyword +"有: " + stringBuilder.toString());
+            System.out.println(enterpriseIndex.getName() +":" + ""  + ",旗下的产品有: " + stringBuilder.toString());
+            System.out.println("{");
+            System.out.println("供应商名称:" + enterpriseIndex.getName());
+            System.out.println("供应商品牌:" + enterpriseIndex.getBrand());
+            System.out.println("供应商简介:" + enterpriseIndex.getIntroduction());
+            String productString = stringBuilder.toString();
+            if (!StringUtils.isEmpty(productString)) {
+                System.out.println("供应商产品:" + productString);
+            }
+            System.out.println("}");
         }
     }
 

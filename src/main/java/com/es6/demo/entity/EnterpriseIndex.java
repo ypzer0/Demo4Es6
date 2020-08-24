@@ -28,8 +28,17 @@ public class EnterpriseIndex implements Serializable {
     /**公司名称*/
     @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
     private String name;
-
+    /**
+     * 企业品牌
+     */
+    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
     private String brand;
+    /**
+     * 企业介绍
+     */
+    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    private String introduction;
+
     @Field(type = FieldType.Nested)
     private List<ProductToEnterpriseIndex> products;
 
@@ -74,5 +83,13 @@ public class EnterpriseIndex implements Serializable {
 
     public void setInnerHits(List<ProductToEnterpriseIndex> innerHits) {
         this.innerHits = innerHits;
+    }
+
+    public String getIntroduction() {
+        return introduction;
+    }
+
+    public void setIntroduction(String introduction) {
+        this.introduction = introduction;
     }
 }

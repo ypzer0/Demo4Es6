@@ -17,7 +17,7 @@ public class ProductToEnterpriseIndex {
     @Field(type= FieldType.Keyword,index =false, store = true)
     private String id;
     /**产品名称*/
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     @ScriptedField(name = "name")
     private String name;
 
