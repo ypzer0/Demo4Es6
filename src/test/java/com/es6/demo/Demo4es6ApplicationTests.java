@@ -209,6 +209,12 @@ class Demo4es6ApplicationTests {
             BeanUtils.copyProperties(productIndex, productInEnterprise);
             products.add(productInEnterprise);
             enterpriseIndex.setProducts(products);
+            Set<String> categoryIds = enterpriseIndex.getCategoryIds();
+            if (CollectionUtils.isEmpty(categoryIds)) {
+                categoryIds = new HashSet<>();
+            }
+            categoryIds.add(categoryId);
+            enterpriseIndex.setCategoryIds(categoryIds);
             enterpriseIndexRepository.save(enterpriseIndex);
             // 更新目录下的产品信息
             Optional<Category> optionalCategory = categoryIndexRepository.findById(categoryId);
@@ -359,8 +365,91 @@ class Demo4es6ApplicationTests {
         productIndexRepository.saveAll(list);
     }
 
+    /**
+     * 精确匹配到分类，后多条件组合查询所属企业
+     */
     @Test
-    void searchEnterpriseByProductNested() {
+    void searchEnterprisePrecise() {
+        String keyword = "交流泵";
+        MatchQueryBuilder categoryQuery = QueryBuilders.matchQuery("keyword", keyword);
+        Category category = categoryIndexRepository.search(categoryQuery).iterator().next();
+        if (!Optional.ofNullable(category).isPresent()) {
+            System.out.println("关键字未匹配到目录");
+            return;
+        }
+        MatchQueryBuilder query = QueryBuilders.matchQuery("categoryIds", category.getId());
+        query.boost(20.0f);
+        MatchQueryBuilder query1 = QueryBuilders.matchQuery("name", keyword);
+        //高亮规则定义
+        HighlightBuilder highlightBuilder=new HighlightBuilder();
+        highlightBuilder.preTags("<span style='color:red;font-weight:700;'>");
+        highlightBuilder.postTags("</span>");
+        //指定高亮字段
+        highlightBuilder.field("name");
+        query1.boost(10.0f);
+        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("products.name", keyword);
+        NestedQueryBuilder query2 = QueryBuilders.nestedQuery("products", matchQuery, ScoreMode.Total);
+        query2.boost(5.0f);
+        InnerHitBuilder innerHitBuilder = new InnerHitBuilder();
+        // 返回匹配的前一百个(引擎最多支持100个)
+        innerHitBuilder.setSize(100);
+        HighlightBuilder highlightBuilder2 = new HighlightBuilder();
+        // 产品高亮字段
+        highlightBuilder2.field("products.name");
+        // 高亮标签
+        highlightBuilder2.preTags("<span style='color:red;font-weight:700;'>").postTags("</span>");
+        innerHitBuilder.setHighlightBuilder(highlightBuilder2);
+        query2.innerHit(innerHitBuilder);
+        MatchQueryBuilder query3 = QueryBuilders.matchQuery("brand", keyword);
+        query3.boost(1.0f);
+        MatchQueryBuilder query4 = QueryBuilders.matchQuery("introduction", keyword);
+        query4.boost(1.0f);
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
+                .must(query)
+                .should(query1)
+                .should(query2)
+                .should(query3)
+                .should(query4);
+        NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+        //设置分页
+        nativeSearchQueryBuilder.withPageable(PageRequest.of(0,100));
+        //设置企业类高亮
+        nativeSearchQueryBuilder.withHighlightBuilder(highlightBuilder);
+        nativeSearchQueryBuilder.withHighlightFields(
+                highlightBuilder.fields().get(0)
+        );
+        nativeSearchQueryBuilder.withQuery(boolQuery);
+        ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort();
+        FieldSortBuilder sortBuilder = SortBuilders.fieldSort("createTime").order(SortOrder.DESC);
+        // 一定要设置分数排序
+        nativeSearchQueryBuilder.withSort(scoreSortBuilder).withSort(sortBuilder);
+        SearchQuery searchQuery = nativeSearchQueryBuilder.build();
+        CustomResultMapper customResultMapper = new CustomResultMapper();
+        AggregatedPage<EnterpriseIndex> result = elasticsearchTemplate.queryForPage(searchQuery, EnterpriseIndex.class, customResultMapper);
+        System.out.println("搜索" + keyword +":");
+        for (EnterpriseIndex enterpriseIndex : result) {
+            StringBuilder stringBuilder = new StringBuilder();
+            List<ProductInEnterprise> products = enterpriseIndex.getInnerHits();
+            for (ProductInEnterprise product : products) {
+                stringBuilder.append(product.getName()).append(" ");
+            }
+            System.out.println("{");
+            System.out.println("       供应商名称:" + enterpriseIndex.getName());
+            System.out.println("       供应商品牌:" + enterpriseIndex.getBrand());
+            System.out.println("       供应商简介:" + enterpriseIndex.getIntroduction());
+            String productString = stringBuilder.toString();
+            if (!StringUtils.isEmpty(productString)) {
+                System.out.println("供应商产品:" + productString);
+            }
+            System.out.println("}");
+        }
+    }
+
+    /**
+     * 多条件组合查询所属企业
+     */
+    @Test
+    void searchEnterprise() {
         // 设前端传入的目录是keyword
         String keyword = "交流泵";
         MatchQueryBuilder query1 = QueryBuilders.matchQuery("name", keyword);
@@ -417,12 +506,12 @@ class Demo4es6ApplicationTests {
                 stringBuilder.append(product.getName()).append(" ");
             }
             System.out.println("{");
-            System.out.println("供应商名称:" + enterpriseIndex.getName());
-            System.out.println("供应商品牌:" + enterpriseIndex.getBrand());
-            System.out.println("供应商简介:" + enterpriseIndex.getIntroduction());
+            System.out.println("       供应商名称:" + enterpriseIndex.getName());
+            System.out.println("       供应商品牌:" + enterpriseIndex.getBrand());
+            System.out.println("       供应商简介:" + enterpriseIndex.getIntroduction());
             String productString = stringBuilder.toString();
             if (!StringUtils.isEmpty(productString)) {
-                System.out.println("供应商产品:" + productString);
+                System.out.println("       供应商产品:" + productString);
             }
             System.out.println("}");
         }
@@ -474,27 +563,5 @@ class Demo4es6ApplicationTests {
             System.out.println("}");
         }
     }
-
-    @Test
-    void searchProductByCategory() {
-        // 设前端传入的目录是keyword
-        String keyword = "电机";
-        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("categories.name", keyword);
-        NestedQueryBuilder nestedQuery = QueryBuilders.nestedQuery("categories", matchQuery, ScoreMode.Total);
-        nestedQuery.innerHit(new InnerHitBuilder());
-        NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
-        //设置分页
-        PageRequest dataPage = PageRequest.of(0, 2000);
-        nativeSearchQueryBuilder.withPageable(dataPage);
-        nativeSearchQueryBuilder.withQuery(nestedQuery);
-        NativeSearchQuery searchQuery = nativeSearchQueryBuilder.build();
-        Page<ProductIndex> page = productIndexRepository.search(searchQuery);
-        List<ProductIndex> result = page.getContent();
-        System.out.println("搜索" + keyword +",分类匹配的产品是:");
-        for (ProductIndex productIndex : result) {
-            System.out.println(productIndex.getName());
-        }
-    }
-
 
 }
