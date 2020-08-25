@@ -1,10 +1,12 @@
 package com.es6.demo.entity;
 
+import com.es6.demo.annotation.InnerHits;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,17 +38,12 @@ public class Category {
     @Field(type = FieldType.Text,store = true)
     private Set<String> enterpriseIds;
 
-    @Override
-    public String toString() {
-        return "Category{" +
-                "id='" + id + '\'' +
-                ", keyword='" + keyword + '\'' +
-                ", name='" + name + '\'' +
-                ", parentId='" + parentId + '\'' +
-                ", parentName='" + parentName + '\'' +
-                ", enterpriseIds=" + enterpriseIds +
-                '}';
-    }
+    @Field(type = FieldType.Nested,store = true)
+    private Set<ProductInCategory> products;
+
+    @InnerHits(name = "com.es6.demo.entity.ProductInCategory",fieldName = "products")
+    private List<ProductInCategory> innerHits;
+
 
     public String getId() {
         return id;
@@ -94,5 +91,21 @@ public class Category {
 
     public void setEnterpriseIds(Set<String> enterpriseIds) {
         this.enterpriseIds = enterpriseIds;
+    }
+
+    public Set<ProductInCategory> getProducts() {
+        return products;
+    }
+
+    public void setProducts(Set<ProductInCategory> products) {
+        this.products = products;
+    }
+
+    public List<ProductInCategory> getInnerHits() {
+        return innerHits;
+    }
+
+    public void setInnerHits(List<ProductInCategory> innerHits) {
+        this.innerHits = innerHits;
     }
 }

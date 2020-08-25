@@ -10,9 +10,11 @@ import java.util.Date;
 import java.util.List;
 
 /**
- *@Description: 企业（工厂）索引表
- *@Author: Lin Lee
- *@Date: 2019/5/10 15:28
+ * @Author: yangpeng
+ * @ClassName: EnterpriseIndex
+ * @Description: todo
+ * @Date: 2020/8/24 19:54
+ * @Version v1.0
  */
 @Document(indexName = "enterprise", type = "_doc")
 @Setting(settingPath = "enterprise/enterprise-setting.json")
@@ -44,10 +46,10 @@ public class EnterpriseIndex implements Serializable {
     private Date createTime;
 
     @Field(type = FieldType.Nested)
-    private List<ProductToEnterpriseIndex> products;
+    private List<ProductInEnterprise> products;
 
     @InnerHits(name = "com.es6.demo.entity.ProductToEnterpriseIndex",fieldName = "products")
-    private List<ProductToEnterpriseIndex> innerHits;
+    private List<ProductInEnterprise> innerHits;
 
     public String getId() {
         return id;
@@ -81,19 +83,19 @@ public class EnterpriseIndex implements Serializable {
         this.createTime = createTime;
     }
 
-    public List<ProductToEnterpriseIndex> getProducts() {
+    public List<ProductInEnterprise> getProducts() {
         return products;
     }
 
-    public void setProducts(List<ProductToEnterpriseIndex> products) {
+    public void setProducts(List<ProductInEnterprise> products) {
         this.products = products;
     }
 
-    public List<ProductToEnterpriseIndex> getInnerHits() {
+    public List<ProductInEnterprise> getInnerHits() {
         return innerHits;
     }
 
-    public void setInnerHits(List<ProductToEnterpriseIndex> innerHits) {
+    public void setInnerHits(List<ProductInEnterprise> innerHits) {
         this.innerHits = innerHits;
     }
 

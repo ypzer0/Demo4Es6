@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.annotations.ScriptedField;
  * @Date: 2020/8/13 8:56
  * @Version v1.0
  */
-public class ProductToEnterpriseIndex {
+public class ProductInEnterprise {
     @Id
     @Field(type= FieldType.Keyword,index =false, store = true)
     private String id;
