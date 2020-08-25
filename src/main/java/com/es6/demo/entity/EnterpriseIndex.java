@@ -48,7 +48,7 @@ public class EnterpriseIndex implements Serializable {
     @Field(type = FieldType.Nested)
     private List<ProductInEnterprise> products;
 
-    @InnerHits(name = "com.es6.demo.entity.ProductToEnterpriseIndex",fieldName = "products")
+    @InnerHits(name = "com.es6.demo.entity.ProductInEnterprise",fieldName = "products")
     private List<ProductInEnterprise> innerHits;
 
     public String getId() {

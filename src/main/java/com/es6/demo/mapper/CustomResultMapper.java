@@ -196,7 +196,7 @@ public class CustomResultMapper extends DefaultResultMapper {
 
         for(int var5 = 0; var5 < var4; ++var5) {
             Field field = var3[var5];
-            InnerHits innerHitsAnno = (InnerHits)field.getAnnotation(InnerHits.class);
+            InnerHits innerHitsAnno = field.getAnnotation(InnerHits.class);
             if (innerHitsAnno != null) {
                 field.setAccessible(true);
                 ArrayList<Object> list = new ArrayList<>();
