@@ -439,7 +439,7 @@ class Demo4es6ApplicationTests {
             System.out.println("       供应商简介:" + enterpriseIndex.getIntroduction());
             String productString = stringBuilder.toString();
             if (!StringUtils.isEmpty(productString)) {
-                System.out.println("供应商产品:" + productString);
+                System.out.println("       供应商产品:" + productString);
             }
             System.out.println("}");
         }
