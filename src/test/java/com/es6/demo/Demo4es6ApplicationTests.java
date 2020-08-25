@@ -321,6 +321,9 @@ class Demo4es6ApplicationTests {
         boolQueryBuilder.should(query1).should(query2);
         //设置分页
         nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
+        ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort();
+        FieldSortBuilder sortBuilder = SortBuilders.fieldSort("clickNum").order(SortOrder.DESC);
+        nativeSearchQueryBuilder.withSort(scoreSortBuilder).withSort(sortBuilder);
         SearchQuery searchQuery = nativeSearchQueryBuilder.build();
         CustomResultMapper customResultMapper = new CustomResultMapper();
         AggregatedPage<Category> result = elasticsearchTemplate.queryForPage(searchQuery, Category.class, customResultMapper);

@@ -38,6 +38,9 @@ public class Category {
     @Field(type = FieldType.Text,store = true)
     private Set<String> enterpriseIds;
 
+    @Field(type = FieldType.Long,store = true)
+    private Long clickNum;
+
     @Field(type = FieldType.Nested,store = true)
     private Set<ProductInCategory> products;
 
@@ -91,6 +94,14 @@ public class Category {
 
     public void setEnterpriseIds(Set<String> enterpriseIds) {
         this.enterpriseIds = enterpriseIds;
+    }
+
+    public Long getClickNum() {
+        return clickNum;
+    }
+
+    public void setClickNum(Long clickNum) {
+        this.clickNum = clickNum;
     }
 
     public Set<ProductInCategory> getProducts() {
