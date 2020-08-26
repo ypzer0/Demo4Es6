@@ -46,65 +46,159 @@ class Demo4es6ApplicationTests {
      */
     @Test
     void createElectricMachineryCategory() {
-        Category category1 = new Category();
-        category1.setId("1");
-        category1.setName("顶级分类");
-        category1.setKeyword("顶级分类");
-        categoryIndexRepository.save(category1);
-        Category category2 = new Category();
-        category2.setId("2");
-        category2.setName("电机");
-        category2.setKeyword("电机");
-        category2.setParentId(category1.getId());
-        categoryIndexRepository.save(category2);
-        Category category3 = new Category();
-        category3.setId("3");
-        category3.setParentId(category2.getId());
-        category3.setName("直流电机");
-        category3.setKeyword("直流电机");
-        categoryIndexRepository.save(category3);
-        Category category4 = new Category();
-        category4.setId("4");
-        category4.setParentId(category2.getId());
-        category4.setName("交流电机");
-        category4.setKeyword("交流电机");
-        categoryIndexRepository.save(category4);
-        Category category5 = new Category();
-        category5.setId("5");
-        category5.setName("泵");
-        category5.setKeyword("泵");
-        category5.setParentId("1");
-        categoryIndexRepository.save(category5);
-        Category category6 = new Category();
-        category6.setId("6");
-        category6.setParentId(category5.getId());
-        category6.setName("直流泵");
-        category6.setKeyword("直流泵");
-        categoryIndexRepository.save(category6);
-        Category category7 = new Category();
-        category7.setId("7");
-        category7.setParentId(category5.getId());
-        category7.setName("交流泵");
-        category7.setKeyword("交流泵");
-        categoryIndexRepository.save(category7);
+        Category category = new Category();
+        // 1.矿山专用设备
+        category.setId("1");
+        category.setName("矿山专用设备");
+        category.setKeyword("矿山专用设备");
+        categoryIndexRepository.save(category);
+        //2.冶金专用设备
+        category.setId("2");
+        category.setName("冶金专用设备");
+        category.setKeyword("冶金专用设备");
+        categoryIndexRepository.save(category);
+        //3.水泥专用设备
+        category.setId("3");
+        category.setName("水泥专用设备");
+        category.setKeyword("水泥专用设备");
+        categoryIndexRepository.save(category);
+        // 24.建井设备 1
+        category.setId("24");
+        category.setName("建井设备");
+        category.setKeyword("建井设备");
+        category.setParentId("1");
+        categoryIndexRepository.save(category);
+        // 25.采掘、凿岩设备 1
+        category.setId("25");
+        category.setName("采掘、凿岩设备");
+        category.setKeyword("采掘、凿岩设备");
+        category.setParentId("1");
+        categoryIndexRepository.save(category);
+        // 26.矿山提升设备  1
+        category.setId("26");
+        category.setName("矿山提升设备");
+        category.setKeyword("矿山提升设备");
+        category.setParentId("1");
+        categoryIndexRepository.save(category);
+        // 27.矿物破碎机械  1
+        category.setId("27");
+        category.setName("矿物破碎机械");
+        category.setKeyword("矿物破碎机械");
+        category.setParentId("1");
+        categoryIndexRepository.save(category);
+        // 28.矿物粉磨机械  1
+        category.setId("28");
+        category.setName("矿物粉磨机械");
+        category.setKeyword("矿物粉磨机械");
+        category.setParentId("1");
+        categoryIndexRepository.save(category);
+        // 29.矿物筛分设备  1
+        category.setId("29");
+        category.setName("矿物筛分设备");
+        category.setKeyword("矿物筛分设备");
+        category.setParentId("1");
+        categoryIndexRepository.save(category);
+        // 36.炼铁设备 2
+        category.setId("36");
+        category.setName("炼铁设备");
+        category.setKeyword("炼铁设备");
+        category.setParentId("2");
+        categoryIndexRepository.save(category);
+        // 37.炼钢设备 2
+        category.setId("37");
+        category.setName("炼钢设备");
+        category.setKeyword("炼钢设备");
+        category.setParentId("2");
+        categoryIndexRepository.save(category);
+        // 65.化工专用炉 3
+        category.setId("65");
+        category.setName("化工专用炉");
+        category.setKeyword("化工专用炉");
+        category.setParentId("3");
+        categoryIndexRepository.save(category);
+        // 2582.钻井机  24
+        category.setId("2582");
+        category.setName("钻井机");
+        category.setKeyword("钻井机");
+        category.setParentId("24");
+        categoryIndexRepository.save(category);
+        // 2583.平巷掘进机  24
+        category.setId("2583");
+        category.setName("平巷掘进机");
+        category.setKeyword("平巷掘进机");
+        category.setParentId("24");
+        categoryIndexRepository.save(category);
+        // 2584.天井掘进设备  24
+        category.setId("2584");
+        category.setName("天井掘进设备");
+        category.setKeyword("天井掘进设备");
+        category.setParentId("24");
+        categoryIndexRepository.save(category);
+        // 2588.凿岩机  25
+        category.setId("2588");
+        category.setName("凿岩机");
+        category.setKeyword("凿岩机");
+        category.setParentId("25");
+        categoryIndexRepository.save(category);
+        // 2589.矿用钻车  25
+        category.setId("2589");
+        category.setName("矿用钻车");
+        category.setKeyword("矿用钻车");
+        category.setParentId("25");
+        categoryIndexRepository.save(category);
+        // 2590.钻孔设备（穿孔设备）  25
+        category.setId("2590");
+        category.setName("钻孔设备");
+        category.setKeyword("钻孔设备");
+        category.setParentId("25");
+        categoryIndexRepository.save(category);
+        // 2591.装药填充设备  25
+        category.setId("2591");
+        category.setName("装药填充设备");
+        category.setKeyword("装药填充设备");
+        category.setParentId("25");
+        categoryIndexRepository.save(category);
+        // 2628.砾磨机  28
+        category.setId("2628");
+        category.setName("砾磨机");
+        category.setKeyword("砾磨机");
+        category.setParentId("28");
+        categoryIndexRepository.save(category);
+        // 2629.管磨机  28
+        category.setId("2629");
+        category.setName("管磨机");
+        category.setKeyword("管磨机");
+        category.setParentId("28");
+        categoryIndexRepository.save(category);
+        // 2630.立式水泥磨机  28
+        category.setId("2630");
+        category.setName("立式水泥磨机");
+        category.setKeyword("立式水泥磨机");
+        category.setParentId("28");
+        categoryIndexRepository.save(category);
+        // 2631.其他矿物磨粉机械  28
+        category.setId("2631");
+        category.setName("其他矿物磨粉机械");
+        category.setKeyword("其他矿物磨粉机械");
+        category.setParentId("28");
+        categoryIndexRepository.save(category);
     }
+
 
     @Test
     void saveEnterprise() {
-        for (int i = 1; i <= 10; i++) {
+        String enterpriseString = "浙江华源颜料,浙江三维橡胶,天津莱特,安徽华安,湖南浩森,浙江化工,江苏汇鸿集团,江苏海外,广州化工,山西晋迪鑫,山东昌乐永利塑料,河北环球,广西利土源农业,河北万达橡胶,山西三喜,江苏苏州海峰贸易,北京速牢克化工,福建展化化工,浙江-东海新材料,浙江四海,安徽中元化工集团,大连驹通,上海韬君,上海东贸,河南美德莱,内蒙古乐蒙石矿,河北中创,天津嘉泰丰,吉林化工进出口,宁夏昱辰,青岛传潮国际,天津天凯开米,安徽五矿发展,安徽中元化工集团,大连驹通,上海韬君,上海东贸,河南美德莱,内蒙古乐蒙石矿,内蒙古远鹏,广西博拉暨广顺,青岛金昊龙,山东东营广友橡胶,浙江龙圣华,深圳银鲲鹏,天津渤化化工,山东万和橡塑,河北荣达,河南金晟巍,山西晋迪鑫,浙江路霸工贸,上海亨憬工贸,宁夏平鑫炭素,天津海盛,大连凯兴国际,四川科立鑫,青岛锋泾集团,安徽格莱思曼,河南利浩,河北杰克,天津恩基欧,江西南都,青岛传潮国际,天津天凯开米,天津海盛,宁夏明迈特,江苏泰兴永盛,吉林化工进出口,广西贺州耀龙,山东物博润生,河南源波,山东启航,山东凯达,山东新兴化工,河南万泉,安徽格莱思曼,河南利浩,河北杰克,北京速牢克化工,山东雪原昌盛,福建展化化工,河南启培,湖北新都,浙江-东海新材料,江苏春环集团,浙江四海,湖南长沙仙山源,山西信实,上海一品颜料,广东中山大田,南京金腾橡塑,浙江德隆,辽宁抚顺新大陆,广东普赛达,河北海兴境美化工,青海洲华国际,河北一诺化工,湖北臻境,河北菁莱,河北昇恒科技,江西凯泰食品,江西金马活性炭,山东怀亮,四川金川磷化,河北凯发,安徽科贝瑞,宁波百富勤,广州卫斯理,河南五矿东方";
+        String[] split = enterpriseString.split(",");
+        List<EnterpriseIndex> list = new ArrayList<>();
+        for (int i = 0; i < split.length; i++) {
             EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
-            enterpriseIndex.setId( "" + i);
-            enterpriseIndex.setName("供应商" + i);
-            enterpriseIndexRepository.save(enterpriseIndex);
+            enterpriseIndex.setId(String.valueOf((i+1)));
+            enterpriseIndex.setName(split[i]);
+            enterpriseIndex.setBrand(split[i]);
+            enterpriseIndex.setIntroduction(split[i]);
+            list.add(enterpriseIndex);
         }
-
-        for (int i = 0; i < 7; i++) {
-            EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
-            enterpriseIndex.setName("JOJO的奇妙冒险" + i);
-            enterpriseIndex.setBrand("供应商品牌" + i);
-            enterpriseIndex.setIntroduction("供应商简介" + i);
-            enterpriseIndexRepository.save(enterpriseIndex);
-        }
+        enterpriseIndexRepository.saveAll(list);
     }
 
     /**
