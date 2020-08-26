@@ -26,6 +26,9 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -381,7 +384,7 @@ class Demo4es6ApplicationTests {
     @Test
     void searchCategory() {
         // 设前端传入的目录是keyword
-        String keyword = "交流电机";
+        String keyword = "水泥钻井机";
         MatchQueryBuilder query1 = QueryBuilders.matchQuery("name", keyword).boost(10.0f);
         MatchQueryBuilder matchQuery1 = QueryBuilders.matchQuery("products.name", keyword).boost(5.0f);
         MatchQueryBuilder matchQuery2 = QueryBuilders.matchQuery("products.parameter", keyword).boost(5.0f);
@@ -432,7 +435,9 @@ class Demo4es6ApplicationTests {
             Set<String> enterpriseIds = category.getEnterpriseIds();
             System.out.println("{");
             System.out.println("   目录名称:" + category.getName());
-            System.out.println("   包含:" + enterpriseIds.size() + "家企业");
+            if (!CollectionUtils.isEmpty(enterpriseIds)) {
+                System.out.println("   包含:" + enterpriseIds.size() + "家企业");
+            }
             List<ProductInCategory> innerHits = category.getInnerHits();
             for (ProductInCategory innerHit : innerHits) {
                 System.out.println("     {");
@@ -539,13 +544,23 @@ class Demo4es6ApplicationTests {
         }
     }
 
+    @Test
+    void changeE() {
+        EnterpriseIndex enterpriseIndex = new EnterpriseIndex();
+        enterpriseIndex.setId("91");
+        enterpriseIndex.setName("南京金腾水泥");
+        enterpriseIndex.setBrand("水泥水泥水泥水泥水泥水泥水泥水泥");
+        enterpriseIndex.setIntroduction("水泥水泥水泥水泥");
+        enterpriseIndexRepository.save(enterpriseIndex);
+    }
+
     /**
      * 多条件组合查询所属企业
      */
     @Test
     void searchEnterprise() {
         // 设前端传入的目录是keyword
-        String keyword = "交流泵";
+        String keyword = "河北万达橡胶";
         MatchQueryBuilder query1 = QueryBuilders.matchQuery("name", keyword);
         //高亮规则定义
         HighlightBuilder highlightBuilder=new HighlightBuilder();
@@ -657,5 +672,6 @@ class Demo4es6ApplicationTests {
             System.out.println("}");
         }
     }
+
 
 }

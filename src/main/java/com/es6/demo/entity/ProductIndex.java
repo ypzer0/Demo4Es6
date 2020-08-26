@@ -27,23 +27,23 @@ public class ProductIndex {
     @Field(type= FieldType.Object,store = true)
     private EnterpriseIndex enterpriseInfo;
     /**产品名称*/
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     // @ScriptedField(name = "name")
     private String name;
     /**
      * 产品参数
      */
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String parameter;
     /**
      * 产品所属企业名称
      */
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String enterpriseName;
     /**
      * 简介
      */
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String introduction;
 
     @Field(type = FieldType.Date, store = true)

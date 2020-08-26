@@ -30,17 +30,17 @@ public class EnterpriseIndex implements Serializable {
     @Field(type= FieldType.Keyword, store = true)
     private String id;
     /**公司名称*/
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String name;
     /**
      * 企业品牌
      */
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String brand;
     /**
      * 企业介绍
      */
-    @Field(type = FieldType.Text,analyzer="ik_pinyin_analyzer", searchAnalyzer="ik_pinyin_analyzer", store = true)
+    @Field(type = FieldType.Text,analyzer="ik_smart", searchAnalyzer="ik_smart", store = true)
     private String introduction;
 
     @Field(type = FieldType.Date, store = true)
